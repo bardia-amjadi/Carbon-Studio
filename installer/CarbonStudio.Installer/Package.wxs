@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <!--
+    Per-machine MSI that installs the self-contained, unpackaged Carbon Studio build into Program Files.
+    Uninstalling removes only the files installed here. User settings and logs (%LOCALAPPDATA%\CarbonStudio)
+    and every project the user created are never touched.
+  -->
+  <Package
+      Name="Carbon Studio"
+      Manufacturer="Carbon Studio contributors"
+      Version="$(ProductVersion)"
+      UpgradeCode="BF47CFA2-EC4B-45EE-A5AD-DA677249A1FF"
+      Scope="perMachine"
+      Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Carbon Studio is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Windows 10 version 1809 (build 17763) or later, 64-bit. -->
+    <Launch Condition="Installed OR (VersionNT64 AND WindowsBuild &gt;= 17763)"
+            Message="Carbon Studio requires 64-bit Windows 10 version 1809 or later." />
+
+    <Icon Id="AppIcon" SourceFile="..\..\assets\CarbonStudio.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPCOMMENTS" Value="A local-first development environment for Windows" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Carbon Studio" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppStartMenuFolder" Name="Carbon Studio" />
+    </StandardDirectory>
+
+    <!-- Everything from the publish folder except the executable (declared separately so the shortcut can target it). -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="!(bindpath.publish)**">
+        <Exclude Files="!(bindpath.publish)CarbonStudio.exe" />
+        <Exclude Files="!(bindpath.publish)*.pdb" />
+      </Files>
+    </ComponentGroup>
+
+    <Component Id="MainExecutable" Directory="INSTALLFOLDER" Bitness="always64">
+      <File Id="CarbonStudioExe" Source="!(bindpath.publish)CarbonStudio.exe" KeyPath="yes" />
+    </Component>
+
+    <Component Id="StartMenuShortcut" Directory="AppStartMenuFolder" Bitness="always64">
+      <Shortcut Id="AppShortcut" Name="Carbon Studio" Description="Carbon Studio"
+                Target="[INSTALLFOLDER]CarbonStudio.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+      <RemoveFolder Id="RemoveStartMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="Software\CarbonStudio" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Feature Id="Main" Title="Carbon Studio" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+  </Package>
+</Wix>

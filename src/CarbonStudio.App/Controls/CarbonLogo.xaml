@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="CarbonStudio.App.Controls.CarbonLogo"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Geometric carbon mark: an open hexagon (a graphene cell) around a single atom. Mirrors assets/logo.svg. -->
+  <Viewbox Stretch="Uniform">
+    <Grid Width="1024" Height="1024">
+      <Border CornerRadius="230" Background="#0F141A" BorderBrush="#1F2933" BorderThickness="6" />
+      <Polyline
+          Points="771.8,662 512,812 252.2,662 252.2,362 512,212 771.8,362"
+          Stroke="{StaticResource CarbonAccentBrush}"
+          StrokeThickness="84"
+          StrokeStartLineCap="Round"
+          StrokeEndLineCap="Round"
+          StrokeLineJoin="Round" />
+      <Ellipse Width="92" Height="92" Fill="#E6EDF3" />
+    </Grid>
+  </Viewbox>
+</UserControl>

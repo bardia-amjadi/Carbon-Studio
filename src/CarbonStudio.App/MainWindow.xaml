@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="CarbonStudio.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CarbonStudio.App.Controls"
+    xmlns:views="using:CarbonStudio.App.Views"
+    xmlns:models="using:CarbonStudio.App.Models"
+    xmlns:local="using:CarbonStudio.App">
+
+  <Grid x:Name="RootGrid" Background="{ThemeResource CarbonWindowBrush}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="40" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="24" />
+    </Grid.RowDefinitions>
+
+    <!-- ============ Title bar + main menu ============ -->
+    <Grid x:Name="TitleBarGrid" Grid.Row="0" Background="{ThemeResource CarbonActivityBarBrush}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition x:Name="TitleBarRightInset" Width="0" />
+      </Grid.ColumnDefinitions>
+
+      <controls:CarbonLogo Grid.Column="0" Width="18" Height="18" Margin="12,0,6,0" VerticalAlignment="Center" />
+
+      <MenuBar Grid.Column="1" x:Name="MainMenu" VerticalAlignment="Center" Background="Transparent">
+        <MenuBarItem Title="File">
+          <MenuFlyoutItem Text="New File" Tag="file.new" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="N" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Open File…" Tag="file.open" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="O" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Open Folder…" Tag="file.openFolder" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="O" Modifiers="Control,Shift" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Close Folder" Tag="file.closeFolder" Click="OnMenuCommand" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Save" Tag="file.save" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="S" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Save As…" Tag="file.saveAs" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="S" Modifiers="Control,Shift" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Save All" Tag="file.saveAll" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="S" Modifiers="Control,Menu" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Close Tab" Tag="file.closeTab" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="W" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Exit" Tag="file.exit" Click="OnMenuCommand" />
+        </MenuBarItem>
+
+        <MenuBarItem Title="Edit">
+          <MenuFlyoutItem Text="Undo" Tag="edit.undo" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+Z" />
+          <MenuFlyoutItem Text="Redo" Tag="edit.redo" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+Y" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Cut" Tag="edit.cut" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+X" />
+          <MenuFlyoutItem Text="Copy" Tag="edit.copy" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+C" />
+          <MenuFlyoutItem Text="Paste" Tag="edit.paste" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+V" />
+          <MenuFlyoutItem Text="Select All" Tag="edit.selectAll" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+A" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Find…" Tag="edit.find" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+F" />
+          <MenuFlyoutItem Text="Replace…" Tag="edit.replace" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+H" />
+          <MenuFlyoutItem Text="Go to Line…" Tag="edit.goToLine" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Ctrl+G" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Format Document" Tag="edit.formatDocument" Click="OnMenuCommand" KeyboardAcceleratorTextOverride="Shift+Alt+F" />
+          <MenuFlyoutItem Text="Trim Trailing Whitespace" Tag="edit.trimWhitespace" Click="OnMenuCommand" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutSubItem Text="Line Endings">
+            <MenuFlyoutItem Text="LF (Unix)" Tag="doc.eol.lf" Click="OnMenuCommand" />
+            <MenuFlyoutItem Text="CRLF (Windows)" Tag="doc.eol.crlf" Click="OnMenuCommand" />
+          </MenuFlyoutSubItem>
+          <MenuFlyoutSubItem Text="Save with Encoding">
+            <MenuFlyoutItem Text="UTF-8" Tag="doc.enc.utf8" Click="OnMenuCommand" />
+            <MenuFlyoutItem Text="UTF-8 with BOM" Tag="doc.enc.utf8bom" Click="OnMenuCommand" />
+            <MenuFlyoutItem Text="UTF-16 LE" Tag="doc.enc.utf16le" Click="OnMenuCommand" />
+            <MenuFlyoutItem Text="UTF-16 BE" Tag="doc.enc.utf16be" Click="OnMenuCommand" />
+            <MenuFlyoutItem Text="Latin-1" Tag="doc.enc.latin1" Click="OnMenuCommand" />
+          </MenuFlyoutSubItem>
+        </MenuBarItem>
+
+        <MenuBarItem Title="View">
+          <MenuFlyoutItem Text="Command Palette…" Tag="view.commandPalette" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="P" Modifiers="Control,Shift" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Explorer" Tag="view.explorer" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="E" Modifiers="Control,Shift" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Output" Tag="view.output" Click="OnMenuCommand" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Toggle Side Bar" Tag="view.toggleSidebar" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="B" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Toggle Bottom Panel" Tag="view.toggleBottomPanel" Click="OnMenuCommand">
+            <MenuFlyoutItem.KeyboardAccelerators>
+              <KeyboardAccelerator Key="J" Modifiers="Control" />
+            </MenuFlyoutItem.KeyboardAccelerators>
+          </MenuFlyoutItem>
+          <MenuFlyoutItem Text="Reset Layout" Tag="view.resetLayout" Click="OnMenuCommand" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutSubItem Text="Theme">
+            <RadioMenuFlyoutItem x:Name="ThemeDarkItem" Text="Dark" GroupName="Theme" Tag="view.theme.dark" Click="OnMenuCommand" />
+            <RadioMenuFlyoutItem x:Name="ThemeLightItem" Text="Light" GroupName="Theme" Tag="view.theme.light" Click="OnMenuCommand" />
+            <RadioMenuFlyoutItem x:Name="ThemeSystemItem" Text="Use system setting" GroupName="Theme" Tag="view.theme.system" Click="OnMenuCommand" />
+          </MenuFlyoutSubItem>
+          <ToggleMenuFlyoutItem x:Name="WordWrapItem" Text="Word Wrap" Tag="view.wordWrap" Click="OnMenuCommand" />
+        </MenuBarItem>
+
+        <MenuBarItem Title="Project">
+          <MenuFlyoutItem Text="New Project… (Phase 3)" Tag="project.new" Click="OnMenuCommand" />
+        </MenuBarItem>
+
+        <MenuBarItem Title="Build">
+          <MenuFlyoutItem Text="Build (Phase 4)" Tag="build.build" Click="OnMenuCommand" />
+          <MenuFlyoutItem Text="Run (Phase 4)" Tag="build.run" Click="OnMenuCommand" />
+        </MenuBarItem>
+
+        <MenuBarItem Title="Tools">
+          <MenuFlyoutItem x:Name="SettingsMenuItem" Text="Settings…" Tag="settings.open" Click="OnMenuCommand" />
+          <MenuFlyoutItem Text="Open Settings File" Tag="settings.openFile" Click="OnMenuCommand" />
+          <MenuFlyoutSeparator />
+          <MenuFlyoutItem Text="Terminal (Phase 4)" Tag="terminal.new" Click="OnMenuCommand" />
+        </MenuBarItem>
+
+        <MenuBarItem Title="Help">
+          <MenuFlyoutItem Text="Open Logs Folder" Tag="help.openLogs" Click="OnMenuCommand" />
+          <MenuFlyoutItem Text="About Carbon Studio" Tag="help.about" Click="OnMenuCommand" />
+        </MenuBarItem>
+      </MenuBar>
+
+      <!-- Only this empty strip drags the window; everything else in the row is normal client area. -->
+      <Grid x:Name="TitleDragRegion" Grid.Column="2" Background="Transparent" />
+
+      <Button Grid.Column="3" x:Name="PaletteButton" Click="OnPaletteButtonClick" Margin="8,0" Padding="12,3"
+              Background="Transparent" BorderBrush="{ThemeResource CarbonBorderBrush}" VerticalAlignment="Center"
+              ToolTipService.ToolTip="Command Palette (Ctrl+Shift+P)" AutomationProperties.Name="Open command palette">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <FontIcon Glyph="&#xE721;" FontSize="12" />
+          <TextBlock Text="Search commands" FontSize="12" Foreground="{ThemeResource CarbonMutedTextBrush}" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <!-- ============ Main workspace ============ -->
+    <Grid x:Name="WorkspaceGrid" Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="48" />
+        <ColumnDefinition x:Name="SidebarColumn" Width="280" />
+        <ColumnDefinition x:Name="SidebarSplitterColumn" Width="Auto" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Activity bar -->
+      <Grid Grid.Column="0" Background="{ThemeResource CarbonActivityBarBrush}">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+          <Grid Height="48">
+            <Rectangle x:Name="ExplorerIndicator" Width="2" HorizontalAlignment="Left" Fill="{ThemeResource CarbonAccentBrush}" />
+            <Button x:Name="ExplorerActivity" Tag="explorer" Click="OnActivityClick" Width="48" Height="48" CornerRadius="0"
+                    Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Explorer (Ctrl+Shift+E)" AutomationProperties.Name="Explorer">
+              <SymbolIcon Symbol="Folder" />
+            </Button>
+          </Grid>
+          <Grid Height="48">
+            <Rectangle x:Name="SearchIndicator" Width="2" HorizontalAlignment="Left" Fill="{ThemeResource CarbonAccentBrush}" Visibility="Collapsed" />
+            <Button x:Name="SearchActivity" Tag="search" Click="OnActivityClick" Width="48" Height="48" CornerRadius="0"
+                    Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Search (Phase 5)" AutomationProperties.Name="Search">
+              <SymbolIcon Symbol="Find" />
+            </Button>
+          </Grid>
+          <Grid Height="48">
+            <Rectangle x:Name="GitIndicator" Width="2" HorizontalAlignment="Left" Fill="{ThemeResource CarbonAccentBrush}" Visibility="Collapsed" />
+            <Button x:Name="GitActivity" Tag="git" Click="OnActivityClick" Width="48" Height="48" CornerRadius="0"
+                    Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Source Control (Phase 5)" AutomationProperties.Name="Source Control">
+              <SymbolIcon Symbol="Sync" />
+            </Button>
+          </Grid>
+          <Grid Height="48">
+            <Rectangle x:Name="RunIndicator" Width="2" HorizontalAlignment="Left" Fill="{ThemeResource CarbonAccentBrush}" Visibility="Collapsed" />
+            <Button x:Name="RunActivity" Tag="run" Click="OnActivityClick" Width="48" Height="48" CornerRadius="0"
+                    Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Run and Debug (Phase 4+)" AutomationProperties.Name="Run and Debug">
+              <SymbolIcon Symbol="Play" />
+            </Button>
+          </Grid>
+          <Grid Height="48">
+            <Rectangle x:Name="ExtensionsIndicator" Width="2" HorizontalAlignment="Left" Fill="{ThemeResource CarbonAccentBrush}" Visibility="Collapsed" />
+            <Button x:Name="ExtensionsActivity" Tag="extensions" Click="OnActivityClick" Width="48" Height="48" CornerRadius="0"
+                    Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Extensions (Phase 7)" AutomationProperties.Name="Extensions">
+              <SymbolIcon Symbol="AllApps" />
+            </Button>
+          </Grid>
+        </StackPanel>
+        <Button Grid.Row="1" x:Name="SettingsActivity" Click="OnSettingsActivityClick" Width="48" Height="48" CornerRadius="0"
+                Background="Transparent" BorderThickness="0" ToolTipService.ToolTip="Settings (Ctrl+,)" AutomationProperties.Name="Settings">
+          <SymbolIcon Symbol="Setting" />
+        </Button>
+      </Grid>
+
+      <!-- Side bar -->
+      <Grid x:Name="SidebarHost" Grid.Column="1" Background="{ThemeResource CarbonPanelBrush}">
+        <!-- Explorer view -->
+        <Grid x:Name="ExplorerView">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Grid Margin="12,8,6,4" Height="28">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="ExplorerTitle" Text="EXPLORER" Style="{StaticResource PanelHeaderTextStyle}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="0">
+              <Button x:Name="NewFileButton" Click="OnExplorerNewFileClick" Padding="6" Background="Transparent" BorderThickness="0"
+                      ToolTipService.ToolTip="New File" AutomationProperties.Name="New file in workspace">
+                <FontIcon Glyph="&#xE8A5;" FontSize="13" />
+              </Button>
+              <Button x:Name="NewFolderButton" Click="OnExplorerNewFolderClick" Padding="6" Background="Transparent" BorderThickness="0"
+                      ToolTipService.ToolTip="New Folder" AutomationProperties.Name="New folder in workspace">
+                <FontIcon Glyph="&#xE8F4;" FontSize="13" />
+              </Button>
+              <Button x:Name="RefreshButton" Click="OnExplorerRefreshClick" Padding="6" Background="Transparent" BorderThickness="0"
+                      ToolTipService.ToolTip="Refresh" AutomationProperties.Name="Refresh explorer">
+                <FontIcon Glyph="&#xE72C;" FontSize="13" />
+              </Button>
+            </StackPanel>
+          </Grid>
+
+          <TreeView x:Name="ExplorerTree" Grid.Row="1" SelectionMode="Single"
+                    Expanding="OnExplorerExpanding" Collapsed="OnExplorerCollapsed" ItemInvoked="OnExplorerItemInvoked"
+                    RightTapped="OnExplorerRightTapped" AutomationProperties.Name="Workspace files">
+            <TreeView.ItemTemplate>
+              <DataTemplate x:DataType="models:ExplorerItem">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <FontIcon Glyph="{x:Bind Glyph}" FontSize="14" />
+                  <TextBlock Text="{x:Bind Name}" VerticalAlignment="Center" />
+                </StackPanel>
+              </DataTemplate>
+            </TreeView.ItemTemplate>
+          </TreeView>
+
+          <StackPanel x:Name="NoFolderPanel" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" Padding="16">
+            <TextBlock Text="No folder opened" HorizontalAlignment="Center" Foreground="{ThemeResource CarbonMutedTextBrush}" />
+            <Button Content="Open Folder…" Click="OnOpenFolderButtonClick" HorizontalAlignment="Center" Style="{StaticResource AccentButtonStyle}" />
+          </StackPanel>
+        </Grid>
+
+        <!-- Views that belong to later phases -->
+        <Grid x:Name="PlaceholderView" Visibility="Collapsed" />
+      </Grid>
+
+      <controls:SplitterBar x:Name="SidebarSplitter" Grid.Column="2" />
+
+      <!-- Editor area + bottom panel -->
+      <Grid x:Name="EditorAreaGrid" Grid.Column="3">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*" MinHeight="120" />
+          <RowDefinition x:Name="BottomSplitterRow" Height="Auto" />
+          <RowDefinition x:Name="BottomPanelRow" Height="220" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="{ThemeResource CarbonEditorBrush}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <!-- The tab strip only; all documents are displayed by the single editor surface placed in EditorHost. -->
+          <TabView x:Name="EditorTabs" Grid.Row="0" IsAddTabButtonVisible="False" CanReorderTabs="True" CanDragTabs="False"
+                   TabWidthMode="SizeToContent" TabCloseRequested="OnTabCloseRequested" SelectionChanged="OnTabSelectionChanged"
+                   Background="{ThemeResource CarbonPanelBrush}" />
+          <Grid x:Name="EditorHost" Grid.Row="1">
+            <TextBlock x:Name="EditorStartingText" Text="Starting editor…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Foreground="{ThemeResource CarbonMutedTextBrush}" Visibility="Collapsed" />
+          </Grid>
+          <views:WelcomeView x:Name="Welcome" Grid.Row="0" Grid.RowSpan="2" />
+        </Grid>
+
+        <controls:SplitterBar x:Name="BottomSplitter" Grid.Row="1" />
+
+        <Grid Grid.Row="2" x:Name="BottomPanel" Background="{ThemeResource CarbonPanelBrush}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <SelectorBar x:Name="BottomTabs" Grid.Row="0" SelectionChanged="OnBottomTabChanged" Margin="8,0,0,0">
+            <SelectorBarItem x:Name="TerminalTab" Text="Terminal" Tag="terminal" />
+            <SelectorBarItem x:Name="OutputTab" Text="Output" Tag="output" IsSelected="True" />
+            <SelectorBarItem x:Name="ProblemsTab" Text="Problems" Tag="problems" />
+            <SelectorBarItem x:Name="DebugTab" Text="Debug Console" Tag="debug" />
+            <SelectorBarItem x:Name="TestsTab" Text="Test Explorer" Tag="tests" />
+          </SelectorBar>
+
+          <Grid Grid.Row="1">
+            <ScrollViewer x:Name="OutputScroll" Padding="12,6" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+              <TextBlock x:Name="OutputText" FontFamily="Cascadia Mono, Consolas" FontSize="12" IsTextSelectionEnabled="True"
+                         Foreground="{ThemeResource CarbonTextBrush}" />
+            </ScrollViewer>
+            <Grid x:Name="BottomPlaceholderHost" Visibility="Collapsed" />
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
+
+    <!-- ============ Status bar ============ -->
+    <Grid Grid.Row="2" Background="{ThemeResource CarbonActivityBarBrush}" BorderBrush="{ThemeResource CarbonBorderBrush}" BorderThickness="0,1,0,0" Padding="12,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel Orientation="Horizontal" Spacing="18" VerticalAlignment="Center">
+        <TextBlock x:Name="WorkspaceStatusText" FontSize="12" Foreground="{ThemeResource CarbonTextBrush}" />
+        <TextBlock x:Name="MessageStatusText" FontSize="12" Foreground="{ThemeResource CarbonMutedTextBrush}" />
+      </StackPanel>
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="18" VerticalAlignment="Center">
+        <TextBlock x:Name="PositionStatusText" FontSize="12" Foreground="{ThemeResource CarbonTextBrush}" />
+        <TextBlock x:Name="LanguageStatusText" FontSize="12" Foreground="{ThemeResource CarbonTextBrush}" />
+        <TextBlock x:Name="EncodingStatusText" FontSize="12" Foreground="{ThemeResource CarbonTextBrush}" />
+        <TextBlock x:Name="LineEndingStatusText" FontSize="12" Foreground="{ThemeResource CarbonTextBrush}" />
+      </StackPanel>
+    </Grid>
+
+    <!-- ============ Command palette overlay ============ -->
+    <Grid x:Name="PaletteOverlay" Grid.RowSpan="3" Visibility="Collapsed" Background="{ThemeResource CarbonOverlayBrush}"
+          Tapped="OnPaletteScrimTapped">
+      <Border x:Name="PaletteCard" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,64,0,0" Width="580" MaxHeight="440"
+              Background="{ThemeResource CarbonPanelBrush}" BorderBrush="{ThemeResource CarbonBorderBrush}" BorderThickness="1"
+              CornerRadius="10" Padding="8" Tapped="OnPaletteCardTapped">
+        <Grid RowSpacing="8">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <TextBox x:Name="PaletteInput" PlaceholderText="Type a command…" TextChanged="OnPaletteTextChanged" KeyDown="OnPaletteKeyDown"
+                   AutomationProperties.Name="Command palette search" />
+          <ListView x:Name="PaletteList" Grid.Row="1" SelectionMode="Single" IsItemClickEnabled="True" ItemClick="OnPaletteItemClick"
+                    AutomationProperties.Name="Matching commands">
+            <ListView.ItemTemplate>
+              <DataTemplate x:DataType="local:PaletteItem">
+                <Grid ColumnSpacing="12" Padding="4,2">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{x:Bind Category}" Foreground="{ThemeResource CarbonMutedTextBrush}" />
+                    <TextBlock Text="{x:Bind Title}" Opacity="{x:Bind Opacity}" />
+                    <TextBlock Text="{x:Bind Note}" Foreground="{ThemeResource CarbonAccentBrush}" FontSize="11" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="1" Text="{x:Bind Shortcut}" Foreground="{ThemeResource CarbonMutedTextBrush}" />
+                </Grid>
+              </DataTemplate>
+            </ListView.ItemTemplate>
+          </ListView>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

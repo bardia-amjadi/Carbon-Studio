@@ -1,0 +1,18 @@
+{
+  "name": "carbon-studio-editor",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Monaco editor host bundled for Carbon Studio (WebView2). Built by CI; output goes to ../../Assets/editor.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/bridge.test.mjs"
+  },
+  "dependencies": {
+    "monaco-editor": "0.57.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  },
+  "license": "UNLICENSED"
+}

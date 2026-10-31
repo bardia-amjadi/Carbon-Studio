@@ -1,0 +1,23 @@
+<Project Sdk="WixToolset.Sdk/7.0.0">
+  <!--
+    Installer SKELETON (Phase 1). It has not been built yet: the first real build happens in GitHub Actions
+    (see .github/workflows/build.yml). WiX v7 requires explicit acceptance of the Open Source Maintenance Fee EULA;
+    CI only builds this project when the repository variable WIX_EULA_ACCEPTED is set to "wix7" by the repository owner.
+  -->
+  <PropertyGroup>
+    <OutputName>CarbonStudio-Setup-win-x64</OutputName>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Platforms>x64</Platforms>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <ProductVersion Condition="'$(ProductVersion)' == ''">0.1.0</ProductVersion>
+    <!-- Folder holding the output of: dotnet publish src/CarbonStudio.App -r win-x64 (see docs/DEVELOPMENT.md). -->
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\..\artifacts\publish\win-x64\</PublishDir>
+    <DefineConstants>$(DefineConstants);ProductVersion=$(ProductVersion)</DefineConstants>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <BindPath Include="$(PublishDir)" BindName="publish" />
+  </ItemGroup>
+</Project>

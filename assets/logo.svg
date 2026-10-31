@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="256" height="256" role="img" aria-label="Carbon Studio logo">
+  <rect x="3" y="3" width="1018" height="1018" rx="230" fill="#0F141A" stroke="#1F2933" stroke-width="6"/>
+  <path d="M 771.8 662.0 L 512.0 812.0 L 252.2 662.0 L 252.2 362.0 L 512.0 212.0 L 771.8 362.0" fill="none" stroke="#38BDF8" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="512" cy="512" r="46" fill="#E6EDF3"/>
+</svg>
