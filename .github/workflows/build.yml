@@ -1,0 +1,236 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      accept_wix_eula:
+        description: 'Build the installer. I have read and accept the WiX Toolset v7 EULA (https://www.firegiant.com/wix/eula/)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  CONFIGURATION: Release
+  RUNTIME_ID: win-x64
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Formatting + Core library tests (no WinUI toolchain needed).
+  # ---------------------------------------------------------------------------
+  test-core:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/CarbonStudio.App/Editor/web/package-lock.json
+
+      - name: Check C# whitespace formatting
+        run: dotnet format whitespace . --folder --verify-no-changes --exclude .local-verify --exclude artifacts --exclude node_modules
+
+      - name: Test editor bridge (JavaScript)
+        working-directory: src/CarbonStudio.App/Editor/web
+        run: |
+          npm ci
+          npm test
+
+      - name: Restore
+        run: dotnet restore tests/CarbonStudio.Core.Tests/CarbonStudio.Core.Tests.csproj
+
+      - name: Test Core
+        run: >
+          dotnet test tests/CarbonStudio.Core.Tests/CarbonStudio.Core.Tests.csproj
+          --configuration ${{ env.CONFIGURATION }} --no-restore
+          --logger "trx;LogFileName=core-tests.trx" --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarbonStudio-TestResults
+          path: TestResults/*.trx
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # Publish the self-contained, unpackaged WinUI 3 app.
+  # ---------------------------------------------------------------------------
+  build-app:
+    needs: test-core
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/CarbonStudio.App/Editor/web/package-lock.json
+
+      - name: Build editor bundle (Monaco)
+        working-directory: src/CarbonStudio.App/Editor/web
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publish Carbon Studio (${{ env.RUNTIME_ID }})
+        run: >
+          dotnet publish src/CarbonStudio.App/CarbonStudio.App.csproj
+          --configuration ${{ env.CONFIGURATION }} --runtime ${{ env.RUNTIME_ID }} --self-contained true
+          --output artifacts/publish/${{ env.RUNTIME_ID }}
+
+      - name: Verify published output
+        shell: pwsh
+        run: |
+          $dir = "artifacts/publish/${{ env.RUNTIME_ID }}"
+          $required = @(
+            "CarbonStudio.exe", "CarbonStudio.Core.dll", "CarbonStudio.dll",
+            "Assets/editor/index.html", "Assets/editor/main.js", "Assets/editor/main.css",
+            "Assets/editor/workers/editor.worker.js", "Assets/editor/workers/json.worker.js", "Assets/editor/workers/ts.worker.js",
+            "Assets/editor/LICENSE-monaco-editor.txt"
+          )
+          $missing = $required | Where-Object { -not (Test-Path (Join-Path $dir $_)) }
+          if ($missing) { throw "Missing expected files in ${dir}: $($missing -join ', ')" }
+          $size = (Get-ChildItem $dir -Recurse -File | Measure-Object Length -Sum).Sum
+          if ($size -lt 1MB) { throw "Published output is suspiciously small ($size bytes)." }
+          "Published $((Get-ChildItem $dir -Recurse -File).Count) files, $([math]::Round($size / 1MB, 1)) MB" | Write-Host
+
+      - name: Upload application
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarbonStudio-win-x64
+          path: artifacts/publish/win-x64
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # MSI installer. WiX v7 needs its EULA accepted explicitly: tick the checkbox when running the
+  # workflow manually, or set the repository variable WIX_EULA_ACCEPTED = wix7 for automatic runs.
+  # ---------------------------------------------------------------------------
+  installer:
+    needs: build-app
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check WiX EULA acceptance
+        id: eula
+        shell: pwsh
+        run: |
+          if ($env:WIX_EULA_ACCEPTED -eq 'wix7' -or $env:ACCEPT_INPUT -eq 'true') {
+            "accepted=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "accepted=false" >> $env:GITHUB_OUTPUT
+            "### Installer was NOT built" >> $env:GITHUB_STEP_SUMMARY
+            "The WiX Toolset v7 EULA has not been accepted, so no installer was produced. Review https://www.firegiant.com/wix/eula/ and, if you agree, " +
+            "re-run via Actions > build > Run workflow and tick the EULA checkbox (or set the repository variable WIX_EULA_ACCEPTED to wix7 for every run)." >> $env:GITHUB_STEP_SUMMARY
+            Write-Host "::warning title=Installer skipped::WiX EULA not accepted; run the workflow manually with the EULA checkbox ticked to build the installer."
+          }
+        env:
+          WIX_EULA_ACCEPTED: ${{ vars.WIX_EULA_ACCEPTED }}
+          ACCEPT_INPUT: ${{ inputs.accept_wix_eula }}
+
+      - uses: actions/checkout@v4
+        if: steps.eula.outputs.accepted == 'true'
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.eula.outputs.accepted == 'true'
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/download-artifact@v4
+        if: steps.eula.outputs.accepted == 'true'
+        with:
+          name: CarbonStudio-win-x64
+          path: artifacts/publish/win-x64
+
+      - name: Build installer
+        if: steps.eula.outputs.accepted == 'true'
+        run: >
+          dotnet build installer/CarbonStudio.Installer/CarbonStudio.Installer.wixproj
+          --configuration ${{ env.CONFIGURATION }}
+          -p:PublishDir=${{ github.workspace }}\artifacts\publish\win-x64\
+          -p:AcceptEula=wix7
+
+      - name: Verify installer output
+        if: steps.eula.outputs.accepted == 'true'
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem installer -Recurse -Filter "CarbonStudio-Setup-win-x64.msi" | Select-Object -First 1
+          if (-not $msi) { throw "Installer MSI was not produced." }
+          if ($msi.Length -lt 1MB) { throw "Installer MSI is suspiciously small ($($msi.Length) bytes)." }
+          New-Item -ItemType Directory -Force artifacts/installer | Out-Null
+          Copy-Item $msi.FullName artifacts/installer/
+          "Built $($msi.Name): $([math]::Round($msi.Length / 1MB, 1)) MB" | Write-Host
+
+      - name: Upload installer
+        if: steps.eula.outputs.accepted == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarbonStudio-Setup-win-x64
+          path: artifacts/installer/CarbonStudio-Setup-win-x64.msi
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # GitHub release on version tags.
+  # ---------------------------------------------------------------------------
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-app, installer]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Package and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          cd dist
+          (cd CarbonStudio-win-x64 && zip -qr ../CarbonStudio-win-x64.zip .)
+          files=(CarbonStudio-win-x64.zip)
+          if [ -f CarbonStudio-Setup-win-x64/CarbonStudio-Setup-win-x64.msi ]; then
+            files+=(CarbonStudio-Setup-win-x64/CarbonStudio-Setup-win-x64.msi)
+          else
+            echo "::warning::No installer artifact; the release contains only the portable zip."
+          fi
+          gh release create "${GITHUB_REF_NAME}" "${files[@]}" --repo "${GITHUB_REPOSITORY}" \
+            --title "Carbon Studio ${GITHUB_REF_NAME}" --generate-notes
